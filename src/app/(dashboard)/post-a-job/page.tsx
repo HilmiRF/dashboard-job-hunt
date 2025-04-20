@@ -6,15 +6,6 @@ import InputBenefits from "@/components/organisms/InputBenefits";
 import InputSkills from "@/components/organisms/InputSkills";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
   Form,
   FormControl,
   FormDescription,
@@ -24,7 +15,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Select,
@@ -37,18 +27,23 @@ import { Separator } from "@/components/ui/separator";
 import { JOBTYPES } from "@/constants";
 import { jobFormSchema } from "@/lib/form-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeftIcon, PlusIcon } from "lucide-react";
+import { ArrowLeftIcon } from "lucide-react";
 import React, { FC, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import useSWR from "swr";
 import { fetcher } from "@/lib/utils";
 import { CategoryJob } from "@prisma/client";
-
+import { useSession } from "next-auth/react";
+import moment from "moment";
+import { useRouter } from "next/navigation";
+import { useToast } from "@/components/ui/use-toast";
 interface PostJobPageProps {}
 
 const PostJobPage: FC<PostJobPageProps> = ({}) => {
-  const {data, error, isLoading} = useSWR<CategoryJob[]>("/api/job/categories", fetcher)  
+  const { data } = useSWR<CategoryJob[]>("/api/job/categories", fetcher)
+  const { toast } = useToast();
+  const { data: session } = useSession();
   const [editorLoaded, setEditorLoaded] = useState<boolean>(false);
   const form = useForm<z.infer<typeof jobFormSchema>>({
     resolver: zodResolver(jobFormSchema),
@@ -57,8 +52,43 @@ const PostJobPage: FC<PostJobPageProps> = ({}) => {
     },
   });
 
-  const onSubmit = (val: z.infer<typeof jobFormSchema>) => {
-    console.log(val);
+  const router = useRouter();
+
+  const onSubmit = async (val: z.infer<typeof jobFormSchema>) => {
+    try {
+      const body: any = {
+        applicants: 0,
+        benefits: val.benefits,
+        categoryId: val.categoryId,
+        companyId: session?.user.id!!,
+        datePosted: moment().toDate(),
+        description: val.jobDescription,
+        dueDate: moment().add(1, "M").toDate(),
+        needs: 20,
+        niceToHaves: val.niceToHaves,
+        requiredSkills: val.requiredSkills,
+        responsibility: val.responsibility,
+        salaryFrom: val.salaryFrom,
+        salaryTo: val.salaryTo,
+        whoYouAre: val.whoYouAre,
+      }
+
+      await fetch("/api/job", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
+
+      await router.push("/job-listings");
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to post job",
+      });
+      console.log(error);
+    }
   };
 
   useEffect(() => {
