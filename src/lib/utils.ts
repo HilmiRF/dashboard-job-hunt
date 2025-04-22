@@ -4,28 +4,31 @@ import bcrypt from "bcryptjs";
 import moment from "moment";
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
+	return twMerge(clsx(inputs));
 }
 
 export const hashPassword = async (password: string) => {
-  const hashedPassword = await bcrypt.hash(password, 8);
+	const hashedPassword = await bcrypt.hash(password, 8);
 
-  return hashedPassword;
+	return hashedPassword;
 };
 
 export const comparePassword = async (
-  password: string,
-  hashedPassword: string
+	password: string,
+	hashedPassword: string
 ) => {
-  const isMatch = await bcrypt.compare(password, hashedPassword);
+	const isMatch = await bcrypt.compare(password, hashedPassword);
 
-  return isMatch;
+	return isMatch;
 };
 
-export async function fetcher<JSON = any>(input: RequestInfo, init?: RequestInit): Promise<JSON> {
-  const res = await fetch(input, init)
-  return res.json() as Promise<JSON>
+export async function fetcher<JSON = any>(
+	input: RequestInfo,
+	init?: RequestInit
+): Promise<JSON> {
+	const res = await fetch(input, init);
 
+	return res.json() as Promise<JSON>;
 }
 
 export const dateFormat = (date: any, format: string = "DD MMM YYYY") => {

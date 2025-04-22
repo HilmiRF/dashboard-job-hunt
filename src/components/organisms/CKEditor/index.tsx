@@ -8,7 +8,8 @@ interface CKEditorProps {
 }
 
 const CKEditor: FC<CKEditorProps> = ({ form, name, editorLoaded }) => {
-	const editorRef = useRef<any>({});
+	const editorRef = useRef<any>();
+	const { CKEditor, ClassicEditor } = editorRef.current || {};
 
 	useEffect(() => {
 		editorRef.current = {
@@ -19,10 +20,10 @@ const CKEditor: FC<CKEditorProps> = ({ form, name, editorLoaded }) => {
 
 	return (
 		<>
-			{editorLoaded && editorRef.current.CKEditor && editorRef.current.ClassicEditor ? (
+			{editorLoaded ? (
 				<div>
-					<editorRef.current.CKEditor
-						editor={editorRef.current.ClassicEditor}
+					<CKEditor
+						editor={ClassicEditor}
 						data={form.getValues(name)}
 						onChange={(event: any, editor: any) => {
 							const data = editor.getData();
